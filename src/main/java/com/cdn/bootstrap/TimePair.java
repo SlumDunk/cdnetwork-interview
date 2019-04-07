@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import static com.cdn.commons.Constants.COL_SEPARATOR;
+import static com.cdn.commons.Constants.COL_SEPARATOR_LEN;
 import static com.cdn.commons.Constants.YYYY_MM_DD;
 
 /**
@@ -65,5 +67,9 @@ public class TimePair {
         endTime = calendar.getTimeInMillis() / 1000;
 
         return this;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(COL_SEPARATOR_LEN);
     }
 }

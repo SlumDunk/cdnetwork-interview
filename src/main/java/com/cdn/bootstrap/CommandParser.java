@@ -89,17 +89,29 @@ public class CommandParser {
      * @return
      */
     public CommandParser invoke() {
+        resetConditions();
         String[] arrCommand = commandLine.trim().split(SPACE);
         int len = arrCommand.length;
         if (len >= 1) {
-            command = arrCommand[0];
+            command = arrCommand[0].toUpperCase();
         }
-        if (len == 7) {
-            ip = arrCommand[1].trim();
-            cpuID = arrCommand[2].trim();
-            startTime = arrCommand[3].trim() + SPACE + arrCommand[4].trim();
-            endTime = arrCommand[5].trim() + SPACE + arrCommand[6].trim();
-        }
+
+        ip = arrCommand.length > 1 ? arrCommand[1].trim() : null;
+        cpuID = arrCommand.length > 2 ? arrCommand[2].trim() : null;
+        startTime = arrCommand.length > 4 ? arrCommand[3].trim() + SPACE + arrCommand[4].trim() : null;
+        endTime = arrCommand.length > 6 ? arrCommand[5].trim() + SPACE + arrCommand[6].trim() : null;
+
         return this;
+    }
+
+    /**
+     * reset the query conditions before parse the new command line
+     */
+    private void resetConditions() {
+        this.command = null;
+        this.ip = null;
+        this.cpuID = null;
+        this.startTime = null;
+        this.endTime = null;
     }
 }

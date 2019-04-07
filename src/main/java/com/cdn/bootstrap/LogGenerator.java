@@ -179,6 +179,11 @@ public class LogGenerator {
         if (outputFile.exists()) {
             outputFile.delete();
         }
+        //if the directory does not exist, make the directory
+        File parentFile = outputFile.getParentFile();
+        if (!parentFile.exists()) {
+            parentFile.mkdirs();
+        }
         return new BufferedWriter(new FileWriter(outputFile));
     }
 }

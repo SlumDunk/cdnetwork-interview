@@ -1,5 +1,8 @@
 package com.cdn.bootstrap;
 
+import com.cdn.utils.CommonUtil;
+import com.cdn.utils.StringUtil;
+
 import java.io.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -96,19 +99,23 @@ public class LogQueryer {
      */
     private static String validateParameter(String ip, String cpuID, String startTime, String endTime) {
         StringBuilder buffer = new StringBuilder("");
-        if ("".equals(ip)) {
+        if (StringUtil.isEmpty(ip)) {
             buffer.append("input ip could not be empty");
+        } else if (!CommonUtil.isIP(ip)) {
+            buffer.append("input ip is invalid");
         }
         if (buffer.length() > 0) {
             buffer.append(LINE_SEPARATOR);
         }
-        if ("".equals(cpuID)) {
+        if (StringUtil.isEmpty(cpuID)) {
             buffer.append("input cpu id could not be empty");
+        } else if (!CommonUtil.isCPU(cpuID)) {
+            buffer.append("input cpu_id must be 0 or 1");
         }
         if (buffer.length() > 0) {
             buffer.append(LINE_SEPARATOR);
         }
-        if ("".equals(startTime)) {
+        if (StringUtil.isEmpty(startTime)) {
             buffer.append("input start time could not be empty");
         } else {
             try {
@@ -120,7 +127,7 @@ public class LogQueryer {
         if (buffer.length() > 0) {
             buffer.append(LINE_SEPARATOR);
         }
-        if ("".equals(endTime)) {
+        if (StringUtil.isEmpty(endTime)) {
             buffer.append("input end time could not be empty");
         } else {
             try {
@@ -129,10 +136,10 @@ public class LogQueryer {
                 buffer.append("the format of the end time is illegal, it should be: " + YYYY_MM_DD_HH_MM);
             }
         }
-        if (!endTime.isEmpty() && !startTime.isEmpty()) {
+        if (!StringUtil.isEmpty(startTime) && !StringUtil.isEmpty(endTime)) {
             try {
                 if (!dateFormat.parse(endTime).after(dateFormat.parse(startTime))) {
-                    buffer.append("the end time could not before start time");
+                    buffer.append("the end time could not before start time!");
                 }
             } catch (ParseException e) {
                 System.out.println("the format of the end time or start time is illegal, it should be: " + YYYY_MM_DD_HH_MM);
@@ -149,6 +156,7 @@ public class LogQueryer {
      * @return command parser
      */
     private static CommandParser readConsoleCommand(Scanner cmdScanner, CommandParser commandParser) {
+        System.out.printf(">");
         String commandLine = cmdScanner.nextLine();
         commandParser.setCommandLine(commandLine);
         commandParser = commandParser.invoke();
