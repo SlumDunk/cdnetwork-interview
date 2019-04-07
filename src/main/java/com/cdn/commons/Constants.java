@@ -45,10 +45,6 @@ public interface Constants {
      */
     String COL_USAGE = "usage";
     /**
-     * ip of the server
-     */
-    String IP = "192.168.1.10";
-    /**
      * no. of first cpu
      */
     String CPU_ONE = "0";

@@ -19,25 +19,17 @@ public class LogQueryer {
      * second level: cpu_id
      * thrid level: timestamp
      */
-    public static Map<String, Map<String, TreeMap<Long, Integer>>> logMap = new HashMap<>();
+    private static Map<String, Map<String, TreeMap<Long, Integer>>> logMap = new HashMap<>();
 
     /**
      * template of the output string
      */
-    public static final String TEMPLATE = "(" + "{0}" + COMMA + "{1}%" + ")";
+    private static final String TEMPLATE = "(" + "{0}" + COMMA + "{1}%" + ")";
 
     /**
      * template of the header
      */
-    public static final String HEADER_TEMPLATE = "CPU" + "{0} usage on {1}:" + LINE_SEPARATOR;
-    /**
-     * the name of input File
-     */
-    private static final String DEFAULT_INPUT_FILE_NAME = "2014-10-31.log";
-    /**
-     * path of input file /Users/liuzhongda/Desktop/ITCS6114/homework/project4/cdn/2014-10-31.log
-     */
-    public static final String INPUT_FILE_PATH = ROOT_PATH + File.separator + DEFAULT_INPUT_FILE_NAME;
+    private static final String HEADER_TEMPLATE = "CPU" + "{0} usage on {1}:" + LINE_SEPARATOR;
 
     /**
      * date format for the input condition
@@ -55,7 +47,6 @@ public class LogQueryer {
         File inputFile = new File(dataPath);
         if (!inputFile.exists()) {
             System.out.println("the path of log data does not exist");
-            return;
         } else {
             initialLogMap(inputFile);
             //accept the input command from console
@@ -101,7 +92,7 @@ public class LogQueryer {
      * @param cpuID     no. of cpu
      * @param startTime start time
      * @param endTime   end time
-     * @return
+     * @return if the parameters are valid, return empty string
      */
     private static String validateParameter(String ip, String cpuID, String startTime, String endTime) {
         StringBuilder buffer = new StringBuilder("");
@@ -136,6 +127,15 @@ public class LogQueryer {
                 dateFormat.parse(endTime);
             } catch (ParseException e) {
                 buffer.append("the format of the end time is illegal, it should be: " + YYYY_MM_DD_HH_MM);
+            }
+        }
+        if (!endTime.isEmpty() && !startTime.isEmpty()) {
+            try {
+                if (!dateFormat.parse(endTime).after(dateFormat.parse(startTime))) {
+                    buffer.append("the end time could not before start time");
+                }
+            } catch (ParseException e) {
+                System.out.println("the format of the end time or start time is illegal, it should be: " + YYYY_MM_DD_HH_MM);
             }
         }
         return buffer.toString();
@@ -186,8 +186,14 @@ public class LogQueryer {
                         buffer.append(LINE_SEPARATOR);
                     }
                 }
-                buffer.deleteCharAt(buffer.lastIndexOf(COMMA));
-                System.out.println(buffer.toString());
+                if (buffer.length() > 0 && counter > 0) {
+                    if (buffer.lastIndexOf(COMMA) != -1) {
+                        buffer.deleteCharAt(buffer.lastIndexOf(COMMA));
+                    }
+                    System.out.println(buffer.toString());
+                } else {
+                    System.out.println("there is no log records from " + startTime + " to " + endTime + " for this cpu: " + cpuID + " on this machine: " + ip);
+                }
             } else {
                 System.out.println("there is no log records for this cpu: " + cpuID + " on this machine: " + ip);
             }
@@ -203,14 +209,14 @@ public class LogQueryer {
      * @param inputFile path of input file, directory or common file
      */
     private static void initialLogMap(File inputFile) {
-        File[] fileList;
-        if (inputFile.isDirectory()) {//it is a directory
-            fileList = inputFile.listFiles();
+        List<File> fileList = new ArrayList<>();
+        if (inputFile.isDirectory() && inputFile.listFiles() != null) {//it is a directory
+            fileList = Arrays.asList(inputFile.listFiles());
         } else {//it is just one file
-            fileList = new File[]{inputFile};
+            fileList.add(inputFile);
         }
         //initiate memory map to store the log records
-        if (fileList.length > 0) {
+        if (fileList.size() > 0) {
             BufferedReader reader = null;
             for (File logFile : fileList) {
                 try {

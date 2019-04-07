@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Random;
@@ -25,10 +26,6 @@ public class LogGenerator {
      * the default name of output File
      */
     private static final String DEFAULT_OUTPUT_FILE_NAME = DEFAULT_DATE + LOG_SUFFIX;
-    /**
-     * the default ouput path of the log
-     */
-    private static final String DEFAULT_OUTPUT_FILE_PATH = ROOT_PATH + File.separator;
 
     /**
      * template of each record of log
@@ -38,7 +35,8 @@ public class LogGenerator {
     /**
      * default data path
      */
-    private static final String DEFAULT_DATA_PATH = DEFAULT_OUTPUT_FILE_PATH;
+    private static final String DEFAULT_DATA_PATH = ROOT_PATH;
+
     /**
      * a random number generator
      */
@@ -87,7 +85,8 @@ public class LogGenerator {
         } finally {
             closeWriter(writer);
         }
-        System.out.println("generate logs for " + dateStr + " successful!");
+        String absolutePath = dataPath.endsWith(File.separator) ? dataPath + outputFileName : dataPath + File.separator + outputFileName;
+        System.out.println("generate logs for " + dateStr + " successful! The path of the file is:" + absolutePath);
 
     }
 
@@ -114,10 +113,12 @@ public class LogGenerator {
      * @throws IOException write file exception
      */
     private static void generateHeader(BufferedWriter writer) throws IOException {
-        StringBuilder buffer = new StringBuilder("");
         //write the header into the file
-        buffer.append(MessageFormat.format(TEMPLATE, String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, COL_TIMESTAMP), String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, COL_IP), String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, COL_CPU_ID), String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, COL_USAGE)));
-        writer.write(buffer.toString());
+        writer.write(MessageFormat.format(TEMPLATE,
+                String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, COL_TIMESTAMP),
+                String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, COL_IP),
+                String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, COL_CPU_ID),
+                String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, COL_USAGE)));
         writer.flush();
     }
 
@@ -133,11 +134,24 @@ public class LogGenerator {
         //generate one log record every minute
         int counter = 0;
         StringBuilder buffer = new StringBuilder("");
+        //get the ip address of the server
+        InetAddress ia = InetAddress.getLocalHost();
+        String ip = ia.getHostAddress();
         while (startTimestamp < endTimestamp) {
             //clear the string last time
             buffer.delete(0, buffer.length());
-            buffer.append(MessageFormat.format(TEMPLATE, String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, startTimestamp + ""), String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, IP), String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, CPU_ONE), String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, random.nextInt(100))));
-            buffer.append(MessageFormat.format(TEMPLATE, String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, startTimestamp + ""), String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, IP), String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, CPU_TWO), String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, random.nextInt(100))));
+            //usage of the first cpu
+            buffer.append(MessageFormat.format(TEMPLATE,
+                    String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, startTimestamp + ""),
+                    String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, ip),
+                    String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, CPU_ONE),
+                    String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, random.nextInt(100))));
+            //usage of the second cpu
+            buffer.append(MessageFormat.format(TEMPLATE,
+                    String.format(ALIGN_LEFT + COL_TIMESTAMP_LEN + FORMAT_SUFFIX, startTimestamp + ""),
+                    String.format(ALIGN_LEFT + COL_IP_LEN + FORMAT_SUFFIX, ip),
+                    String.format(ALIGN_LEFT + COL_CPU_ID_LEN + FORMAT_SUFFIX, CPU_TWO),
+                    String.format(ALIGN_LEFT + COL_USAGE_LEN + FORMAT_SUFFIX, random.nextInt(100))));
             writer.write(buffer.toString());
             counter++;
             //flush to file every 100 times
@@ -157,12 +171,14 @@ public class LogGenerator {
      * @throws IOException open file writer exception
      */
     private static BufferedWriter getFileWriter(String dataPath, String outputFileName) throws IOException {
+        if (!dataPath.endsWith(File.separator)) {
+            dataPath = dataPath + File.separator;
+        }
         File outputFile = new File(dataPath + outputFileName);
         //delete the old file if it exists
         if (outputFile.exists()) {
             outputFile.delete();
         }
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-        return writer;
+        return new BufferedWriter(new FileWriter(outputFile));
     }
 }
